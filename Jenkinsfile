@@ -35,20 +35,21 @@ node {
         def json = sh ( returnStdout: true, script: 'docker inspect ' + image + ':' + version )
         def data = readJSON text: json
         new_layers = data[0]['RootFS']['Layers']
-        print old_layers == new_layers
     }
 
-    stage('Push image') {
-        /* Finally, we'll push the image with two tags:
-         * First, the incremental build number from Jenkins
-         * Second, the 'latest' tag.
-         * Pushing multiple tags is cheap, as all the layers are reused. */
+    if ( old_layers != new_layers ) {
+        stage('Push image') {
+            /* Finally, we'll push the image with two tags:
+             * First, the incremental build number from Jenkins
+             * Second, the 'latest' tag.
+             * Pushing multiple tags is cheap, as all the layers are reused. */
 
-        withCredentials([usernamePassword( credentialsId: 'jpdtechnicaluser', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            withCredentials([usernamePassword( credentialsId: 'jpdtechnicaluser', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
 
-            docker.withRegistry('', 'jpdtechnicaluser') {
-                sh "docker login -u ${USERNAME} -p ${PASSWORD}"
-                built_image.push()
+                docker.withRegistry('', 'jpdtechnicaluser') {
+                    sh "docker login -u ${USERNAME} -p ${PASSWORD}"
+                    built_image.push()
+                }
             }
         }
     }
