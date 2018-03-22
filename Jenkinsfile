@@ -1,5 +1,24 @@
 node {
-    def jenkins
+
+    def built_image
+
+    def image = 'jugendpresse/jenkins'
+    def version = 'lts'
+
+    def old_layers
+    def new_layers
+
+    stage('Fetch existing docker image') {
+        /* Pulls current live image and determines layer ids of that image */
+        try {
+            def old_image = docker.image( image + ':' + version ).pull()
+            def json = sh ( returnStdout: true, script: 'docker inspect ' + image + ':' + version )
+            def data = readJSON text: json
+            old_layers = data[0]['RootFS']['Layers']
+        } catch (exc) {
+            old_layers = readJSON text: '[]'
+        }
+    }
 
     stage('Clone repository') {
         /* Let's make sure we have the repository cloned to our workspace */
@@ -9,7 +28,14 @@ node {
     stage('Build image') {
         /* This builds the actual image; synonymous to
          * docker build on the command line */
-        jenkins = docker.build("jugendpresse/jenkins")
+        built_image = docker.build(image + ':' + version)
+    }
+
+    stage('Check Image-Layers') {
+        def json = sh ( returnStdout: true, script: 'docker inspect ' + image + ':' + version )
+        def data = readJSON text: json
+        new_layers = data[0]['RootFS']['Layers']
+        print old_layers == new_layers
     }
 
     stage('Push image') {
@@ -22,7 +48,7 @@ node {
 
             docker.withRegistry('', 'jpdtechnicaluser') {
                 sh "docker login -u ${USERNAME} -p ${PASSWORD}"
-                jenkins.push("lts")
+                built_image.push()
             }
         }
     }
