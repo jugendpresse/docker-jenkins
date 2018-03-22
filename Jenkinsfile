@@ -18,9 +18,9 @@ node {
          * Second, the 'latest' tag.
          * Pushing multiple tags is cheap, as all the layers are reused. */
 
-        withCredentials([usernamePassword( credentialsId: 'docker-hub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+        withCredentials([usernamePassword( credentialsId: 'jpdtechnicaluser', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
 
-            docker.withRegistry('', 'docker-hub-credentials') {
+            docker.withRegistry('', 'jpdtechnicaluser') {
                 sh "docker login -u ${USERNAME} -p ${PASSWORD}"
                 jenkins.push("lts")
             }
