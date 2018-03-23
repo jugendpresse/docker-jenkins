@@ -2,6 +2,8 @@ node {
 
     def built_image
 
+    def baseimage = 'jenkins/jenkins:lts'
+
     def image = 'jugendpresse/jenkins'
     def version = 'lts'
 
@@ -28,7 +30,8 @@ node {
     stage('Build image') {
         /* This builds the actual image; synonymous to
          * docker build on the command line */
-        built_image = docker.build(image + ':' + version, '--no-cache .')
+        docker.image( baseimage ).pull()
+        built_image = docker.build(image + ':' + version)
     }
 
     stage('Check Image-Layers') {
