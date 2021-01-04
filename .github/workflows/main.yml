@@ -2,7 +2,7 @@ name: Build this Docker image
 on:
   workflow_dispatch:
   push:
-    branches: main
+    branches: master
   schedule:
     - cron: '11 23 * * 0'
 
